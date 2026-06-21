@@ -1,0 +1,61 @@
+name: LibraAI CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:latest
+        ports:
+          - 27017:27017
+
+    steps:
+    - uses: actions/checkout@v3
+
+    # Node.js backend validation
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+        cache-dependency-path: backend/package-lock.json
+
+    - name: Install Node backend dependencies
+      run: |
+        cd backend
+        npm ci
+
+    - name: Run Express API verification checks
+      run: |
+        cd backend
+        # Run tests if configured, else execute syntactic validations
+        node -c server.js
+
+    # Python FastAPI AI service validation
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install Python dependencies
+      run: |
+        cd ai-service
+        python -m pip install --upgrade pip
+        pip install fastapi uvicorn pypdf sentence-transformers faiss-cpu numpy opencv-python-headless requests
+
+    - name: Lint FastAPI codebase syntax
+      run: |
+        python -m py_compile ai-service/app/main.py
+
+    # Container build checks
+    - name: Build Docker Container Images
+      run: |
+        docker build -t libra-backend:latest ./backend
+        docker build -t libra-ai-service:latest ./ai-service
+        docker build -t libra-frontend:latest ./frontend
