@@ -74,17 +74,17 @@ const SignUp = () => {
               </div>
             </div>
 
-            {/* Email field */}
+            {/* Email / Phone field */}
             <div className="space-y-1.5 text-left">
-              <label className="text-xs font-semibold text-slate-300">Email Address</label>
+              <label className="text-xs font-semibold text-slate-300">Email Address or Phone Number</label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-500">
                   <Mail size={16} />
                 </span>
                 <input
-                  type="email"
+                  type="text"
                   required
-                  placeholder="Enter email address"
+                  placeholder="email@gmail.com or +9198765..."
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full rounded-xl border border-slate-800 bg-slate-950/40 py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-500 focus:border-brand-500 focus:outline-none transition-all"

@@ -40,55 +40,98 @@ const sendVerificationEmail = async (user, code) => {
 // @access  Public
 exports.register = async (req, res, next) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role } = req.body; // email here acts as email or phone identifier
 
-    // Check if user exists
-    let user = await User.findOne({ email });
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Please provide email or phone number' });
+    }
+
+    const isEmail = email.includes('@');
+    const identifier = email.trim();
+
+    // Check if user exists by email or phone
+    let user = await User.findOne({
+      $or: [
+        { email: identifier },
+        { phone: identifier }
+      ]
+    });
     if (user) {
       return res.status(400).json({ success: false, message: 'User already exists' });
     }
 
-    // Generate 6 digit verification code
+    // Generate 6 digit verification code (OTP)
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Map email/phone correctly
+    const finalEmail = isEmail ? identifier : `phone_${identifier.replace(/[^a-zA-Z0-9]/g, '')}@nalanda.com`;
+    const finalPhone = isEmail ? null : identifier;
 
     // Create user
     user = await User.create({
       name,
-      email,
+      email: finalEmail,
+      phone: finalPhone,
       password,
       role: role || 'student',
       verificationCode,
+      isVerified: false,
       studentId: role === 'student' ? 'LIB-' + Math.floor(100000 + Math.random() * 900000) : undefined
     });
 
     // Send verification code
-    let emailSent = false;
-    let demoCode = verificationCode; // return for ease of testing locally if mock
-    try {
-      await sendVerificationEmail(user, verificationCode);
-      emailSent = true;
-    } catch (err) {
-      console.error('Mail send failed, falling back to mock mode:', err.message);
+    let codeSent = false;
+    let demoCode = verificationCode;
+    if (isEmail) {
+      try {
+        await sendVerificationEmail(user, verificationCode);
+        codeSent = true;
+      } catch (err) {
+        console.error('Mail send failed, falling back to mock mode:', err.message);
+      }
+    } else {
+      // Send via Twilio SMS and WhatsApp
+      try {
+        const { sendSMSAlert } = require('../utils/smsService');
+        await sendSMSAlert(finalPhone, `Your Nalanda Digital Library verification OTP is: ${verificationCode}. It expires in 15 minutes.`);
+        
+        // Try sending WhatsApp
+        try {
+          await whatsappService.sendAlert(finalPhone, `Your Nalanda Digital Library verification OTP is: ${verificationCode}. It expires in 15 minutes.`);
+        } catch (we) {
+          console.error('WhatsApp OTP dispatch failed:', we.message);
+        }
+        codeSent = true;
+      } catch (err) {
+        console.error('SMS/WhatsApp OTP dispatch failed:', err.message);
+      }
     }
 
     res.status(201).json({
       success: true,
-      message: 'User registered. Please check email for verification code.',
-      demoCode: emailSent && process.env.EMAIL_USER !== 'your_email@gmail.com' ? undefined : demoCode
+      message: isEmail 
+        ? 'User registered. Please check email for verification code.'
+        : 'User registered. Please check your phone for verification OTP.',
+      demoCode: codeSent && process.env.EMAIL_USER && process.env.EMAIL_USER !== 'your_email@gmail.com' ? undefined : demoCode
     });
   } catch (error) {
     next(error);
   }
 };
 
-// @desc    Verify email
+// @desc    Verify email / phone
 // @route   POST /api/auth/verify-email
 // @access  Public
 exports.verifyEmail = async (req, res, next) => {
   try {
-    const { email, code } = req.body;
+    const { email, code } = req.body; // email contains either the email or phone number identifier
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({
+      $or: [
+        { email: email },
+        { phone: email }
+      ]
+    });
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
@@ -103,7 +146,7 @@ exports.verifyEmail = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: 'Email verified successfully. You can now login.'
+      message: 'Account verified successfully. You can now login.'
     });
   } catch (error) {
     next(error);
@@ -119,18 +162,23 @@ exports.login = async (req, res, next) => {
 
     // Validate email & password
     if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Please provide email and password' });
+      return res.status(400).json({ success: false, message: 'Please provide email or phone and password' });
     }
 
-    // Check for user
-    const user = await User.findOne({ email }).select('+password');
+    // Check for user by email or phone
+    const user = await User.findOne({
+      $or: [
+        { email: email },
+        { phone: email }
+      ]
+    }).select('+password');
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
-    // Check if email is verified
+    // Check if account is verified
     if (!user.isVerified) {
-      return res.status(401).json({ success: false, message: 'Please verify your email before logging in' });
+      return res.status(401).json({ success: false, message: 'Please verify your account before logging in' });
     }
 
     // Check if password matches
