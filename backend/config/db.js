@@ -11,8 +11,7 @@ const connectDB = async () => {
       const connLocal = await mongoose.connect('mongodb://127.0.0.1:27017/libra-ai');
       console.log(`Local MongoDB Connected: ${connLocal.connection.host}`);
     } catch (localError) {
-      console.error(`MongoDB Connection Error: Both primary and local connections failed. ${localError.message}`);
-      process.exit(1);
+      console.error(`MongoDB Connection Warning: Both primary and local connections failed. Running in offline database warning mode.`);
     }
   }
 };

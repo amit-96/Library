@@ -36,7 +36,7 @@ const UserSchema = new mongoose.Schema({
     default: null
   },
   resetPasswordToken: String,
-  resetPasswordExpire: Date,
+  resetPasswordExpires: Date,
   faceRegistered: {
     type: Boolean,
     default: false

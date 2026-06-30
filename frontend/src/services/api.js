@@ -68,10 +68,10 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ email })
       }),
-    resetPassword: (email, code, newPassword) =>
+    resetPassword: (token, newPassword) =>
       request(`${BACKEND_URL}/api/auth/reset-password`, {
         method: 'POST',
-        body: JSON.stringify({ email, code, newPassword })
+        body: JSON.stringify({ token, newPassword })
       }),
     sendOTP: (identifier) =>
       request(`${BACKEND_URL}/api/auth/otp/send`, {

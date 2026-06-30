@@ -5,6 +5,7 @@ const FeeRecord = require('../models/FeeRecord');
 const whatsappService = require('../utils/whatsappService');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const { sendResetPasswordEmail } = require('../utils/emailService');
 
 
 // Helper to send mock or actual verification email
@@ -179,25 +180,49 @@ exports.getMe = async (req, res, next) => {
 exports.forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+    
+    // Validate email format
+    if (!email || !/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email)) {
+      return res.status(400).json({ success: false, message: 'Please provide a valid email address' });
     }
 
-    // Generate reset code
-    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
-    user.resetPasswordToken = crypto.createHash('sha256').update(resetCode).digest('hex');
-    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 mins
+    const user = await User.findOne({ email });
+
+    // Secure generic response to prevent user enumeration
+    const secureSuccessResponse = {
+      success: true,
+      message: 'If that email is registered, a password reset link has been sent.'
+    };
+
+    if (!user) {
+      // Still return success to prevent email enumeration
+      return res.status(200).json(secureSuccessResponse);
+    }
+
+    // Generate secure random reset token (hex format)
+    const resetToken = crypto.randomBytes(32).toString('hex');
+
+    // Hash the token before storing it in the database
+    user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    // Token expires in 15 minutes (900,000 ms)
+    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
+    
     await user.save();
 
-    console.log(`[MOCK EMAIL] Reset Password code for ${user.email} is: ${resetCode}`);
+    // Send the email with the raw resetToken
+    try {
+      await sendResetPasswordEmail(user.email, user.name, resetToken);
+    } catch (err) {
+      console.error('Failed to send reset email:', err.message);
+      // Clean up fields if email dispatch fails so token is not active
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpires = undefined;
+      await user.save();
+      return res.status(500).json({ success: false, message: 'Email could not be sent' });
+    }
 
-    res.status(200).json({
-      success: true,
-      message: 'Reset password code sent to email',
-      demoCode: resetCode
-    });
+    res.status(200).json(secureSuccessResponse);
   } catch (error) {
     next(error);
   }
@@ -208,29 +233,42 @@ exports.forgotPassword = async (req, res, next) => {
 // @access  Public
 exports.resetPassword = async (req, res, next) => {
   try {
-    const { email, code, newPassword } = req.body;
+    const { token, newPassword } = req.body;
 
-    const resetPasswordToken = crypto.createHash('sha256').update(code).digest('hex');
+    if (!token || !newPassword) {
+      return res.status(400).json({ success: false, message: 'Please provide token and new password' });
+    }
+
+    // Password validation: minimum 8 characters, at least 1 uppercase, 1 lowercase, 1 number, 1 special character
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
+      });
+    }
+
+    // Hash the incoming token to match stored token hash
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
     const user = await User.findOne({
-      email,
-      resetPasswordToken,
-      resetPasswordExpire: { $gt: Date.now() }
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: { $gt: Date.now() }
     });
 
     if (!user) {
-      return res.status(400).json({ success: false, message: 'Invalid or expired password reset code' });
+      return res.status(400).json({ success: false, message: 'Invalid or expired password reset token' });
     }
 
-    // Set new password
+    // Set new password (the pre-save mongoose middleware will hash this with bcrypt)
     user.password = newPassword;
     user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
+    user.resetPasswordExpires = undefined;
     await user.save();
 
     res.status(200).json({
       success: true,
-      message: 'Password reset successfully'
+      message: 'Password has been reset successfully'
     });
   } catch (error) {
     next(error);
