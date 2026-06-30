@@ -3,15 +3,19 @@ const mongoose = require('mongoose');
 const connectDB = async () => {
   try {
     const mongoUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/libra-ai';
-    const conn = await mongoose.connect(mongoUri);
+    const conn = await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 2500 });
     console.log(`MongoDB Connected: ${conn.connection.host}`);
+    mongoose.set('bufferCommands', true);
   } catch (error) {
     console.warn(`Primary MongoDB connection failed: ${error.message}. Attempting local fallback...`);
     try {
-      const connLocal = await mongoose.connect('mongodb://127.0.0.1:27017/libra-ai');
+      const connLocal = await mongoose.connect('mongodb://127.0.0.1:27017/libra-ai', { serverSelectionTimeoutMS: 2500 });
       console.log(`Local MongoDB Connected: ${connLocal.connection.host}`);
+      mongoose.set('bufferCommands', true);
     } catch (localError) {
       console.error(`MongoDB Connection Warning: Both primary and local connections failed. Running in offline database warning mode.`);
+      // Disable Mongoose command buffering so queries fail immediately rather than hanging
+      mongoose.set('bufferCommands', false);
     }
   }
 };
