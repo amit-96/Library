@@ -20,7 +20,7 @@ const StudentFees = () => {
     month: new Date().toLocaleString('default', { month: 'long' }),
     year: new Date().getFullYear(),
     admissionFee: 0,
-    monthlyFee: 1200,
+    monthlyFee: 499,
     securityDeposit: 0,
     paymentMethod: 'UPI',
     transactionId: '',
@@ -73,11 +73,41 @@ const StudentFees = () => {
 
   const openCollectionModal = (student) => {
     setSelectedStudent(student);
+    
+    // Determine monthly fee dynamically based on flyer pricing structure
+    let defaultFee = 499;
+    if (student && student.libraryShift) {
+      const shift = student.libraryShift.toLowerCase();
+      const cycle = student.membershipType || 'Monthly';
+      
+      let shiftType = '6h';
+      if (shift.includes('24') || shift.includes('full')) {
+        shiftType = '24h';
+      } else if (shift.includes('12') || shift.includes('full day')) {
+        shiftType = '12h';
+      } else if (shift.includes('night')) {
+        shiftType = 'night';
+      }
+
+      const matrix = {
+        '24h': { 'Monthly': 599, 'Quarterly': 1499, 'Half-Yearly': 2999, 'Yearly': 5999 },
+        '12h': { 'Monthly': 499, 'Quarterly': 1249, 'Half-Yearly': 2499, 'Yearly': 4999 },
+        '6h': { 'Monthly': 299, 'Quarterly': 749, 'Half-Yearly': 1499, 'Yearly': 2999 },
+        'night': { 'Monthly': 299, 'Quarterly': 749, 'Half-Yearly': 1499, 'Yearly': 2999 }
+      };
+
+      if (matrix[shiftType] && matrix[shiftType][cycle]) {
+        defaultFee = matrix[shiftType][cycle];
+      } else {
+        defaultFee = cycle === 'Yearly' ? 2999 : (cycle === 'Half-Yearly' ? 1499 : (cycle === 'Quarterly' ? 749 : 299));
+      }
+    }
+
     setFeeForm({
       month: new Date().toLocaleString('default', { month: 'long' }),
       year: new Date().getFullYear(),
       admissionFee: 0,
-      monthlyFee: 1200,
+      monthlyFee: defaultFee,
       securityDeposit: 0,
       paymentMethod: 'UPI',
       transactionId: '',

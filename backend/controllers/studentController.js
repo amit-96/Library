@@ -25,6 +25,54 @@ const getShiftHours = (shift) => {
   return { start: '08:00 AM', end: '12:00 PM' }; // default Morning
 };
 
+// Helper to calculate student membership fee based on flyer timing matrix
+const calculateMembershipFee = (shift, membershipType) => {
+  const s = (shift || 'Morning').toLowerCase();
+  
+  let shiftType = '6h';
+  if (s.includes('24') || s.includes('full')) {
+    shiftType = '24h';
+  } else if (s.includes('12') || s.includes('full day')) {
+    shiftType = '12h';
+  } else if (s.includes('night')) {
+    shiftType = 'night';
+  }
+
+  const matrix = {
+    '24h': {
+      'Monthly': 599,
+      'Quarterly': 1499,
+      'Half-Yearly': 2999,
+      'Yearly': 5999
+    },
+    '12h': {
+      'Monthly': 499,
+      'Quarterly': 1249,
+      'Half-Yearly': 2499,
+      'Yearly': 4999
+    },
+    '6h': {
+      'Monthly': 299,
+      'Quarterly': 749,
+      'Half-Yearly': 1499,
+      'Yearly': 2999
+    },
+    'night': {
+      'Monthly': 299,
+      'Quarterly': 749,
+      'Half-Yearly': 1499,
+      'Yearly': 2999
+    }
+  };
+
+  const cycle = membershipType || 'Monthly';
+  if (matrix[shiftType] && matrix[shiftType][cycle]) {
+    return matrix[shiftType][cycle];
+  }
+  
+  return cycle === 'Yearly' ? 2999 : (cycle === 'Half-Yearly' ? 1499 : (cycle === 'Quarterly' ? 749 : 299));
+};
+
 // @desc    Add a new student profile and initialize membership, shift, and initial fees
 // @route   POST /api/students
 // @access  Private (Admin/Librarian)
@@ -121,7 +169,7 @@ exports.addStudent = async (req, res, next) => {
     // Create Initial Month Unpaid Fee Record (includes Admission, Monthly Fee, and Security Deposit)
     const currentMonth = new Date().toLocaleString('default', { month: 'long' });
     const currentYear = new Date().getFullYear();
-    const monthlyFeeAmount = membershipType === 'Yearly' ? 12000 : (membershipType === 'Half-Yearly' ? 6500 : 1200);
+    const monthlyFeeAmount = calculateMembershipFee(libraryShift, membershipType);
     
     await FeeRecord.create({
       studentId: student._id,

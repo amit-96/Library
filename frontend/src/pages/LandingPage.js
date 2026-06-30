@@ -12,6 +12,7 @@ const LandingPage = () => {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeShiftTab, setActiveShiftTab] = useState('12 Hours Full Day');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -65,11 +66,51 @@ const LandingPage = () => {
     { shift: '24×7 Access Shift', hours: 'Always Open', desc: 'Available for premium package holders to study at any time day or night.' }
   ];
 
-  const pricing = [
-    { name: 'Monthly Membership', price: '₹1,200', period: 'month', features: ['Single Shift Slot access', 'High-Speed Wi-Fi', 'Individual Charging Socket', 'Chilled RO Water', 'Daily Newspapers Access'], actionText: 'Join Monthly', highlight: false },
-    { name: 'Quarterly Membership', price: '₹3,250', period: '3 months', features: ['Dual Shift access or Single Lock slot', 'Personal locker allocation', 'High-Speed Wi-Fi & Charging', 'AI Study Assistant basic', 'Free Library Book lending (1 book)'], actionText: 'Book 3 Months', highlight: false },
-    { name: 'Half-Yearly Membership', price: '₹6,000', period: '6 months', features: ['Flexible Shift hours access', 'Personal locker guaranteed', 'High-Speed Wi-Fi & Charging', 'AI chatbot & PDF RAG assistant', 'Free Library Book lending (2 books)', 'Prioritized Seat reservations'], actionText: 'Get 6 Months', highlight: true },
-    { name: 'Yearly Membership', price: '₹11,000', period: 'year', features: ['Full 24x7 access pass', 'Dedicated personal locker', 'Unlimited High-Speed Wi-Fi', 'Premium AI Study suite access', 'Free Library Book lending (4 books)', 'Prioritized VIP Seat allocation', 'Mock Interview sessions grading'], actionText: 'Go Annual', highlight: false }
+  const shiftPricing = [
+    {
+      shift: '24 Hours',
+      hours: '6 A.M to 6 A.M',
+      desc: 'All-day access (24/7) for maximum study flexibility.',
+      prices: [
+        { name: '1 Month', price: '₹599', period: '1 month', original: '₹1,200', features: ['Single Shift Slot access', 'High-Speed Wi-Fi', 'Individual Charging Socket', 'Chilled RO Water', 'Daily Newspapers Access'], actionText: 'Join Monthly', highlight: false },
+        { name: '3 Months', price: '₹1,499', period: '3 months', original: '₹3,250', features: ['Dual Shift access or Single Lock slot', 'Personal locker allocation', 'High-Speed Wi-Fi & Charging', 'AI Study Assistant basic', 'Free Library Book lending (1 book)'], actionText: 'Book 3 Months', highlight: false },
+        { name: '6 Months', price: '₹2,999', period: '6 months', original: '₹6,000', features: ['Flexible Shift hours access', 'Personal locker guaranteed', 'High-Speed Wi-Fi & Charging', 'AI chatbot & PDF RAG assistant', 'Free Library Book lending (2 books)', 'Prioritized Seat reservations'], actionText: 'Get 6 Months', highlight: true },
+        { name: '1 Year', price: '₹5,999', period: '1 year', original: '₹11,000', features: ['Full 24x7 access pass', 'Dedicated personal locker', 'Unlimited High-Speed Wi-Fi', 'Premium AI Study suite access', 'Free Library Book lending (4 books)', 'Prioritized VIP Seat allocation', 'Mock Interview sessions grading'], actionText: 'Go Annual', highlight: false }
+      ]
+    },
+    {
+      shift: '12 Hours Full Day',
+      hours: '6 A.M to 6 P.M',
+      desc: 'Perfect full-day shift for dedicated, long-hour aspirants.',
+      prices: [
+        { name: '1 Month', price: '₹499', period: '1 month', original: '₹1,000', features: ['Single Shift Slot access', 'High-Speed Wi-Fi', 'Individual Charging Socket', 'Chilled RO Water', 'Daily Newspapers Access'], actionText: 'Join Monthly', highlight: false },
+        { name: '3 Months', price: '₹1,249', period: '3 months', original: '₹2,750', features: ['Dual Shift access or Single Lock slot', 'Personal locker allocation', 'High-Speed Wi-Fi & Charging', 'AI Study Assistant basic', 'Free Library Book lending (1 book)'], actionText: 'Book 3 Months', highlight: false },
+        { name: '6 Months', price: '₹2,499', period: '6 months', original: '₹5,000', features: ['Flexible Shift hours access', 'Personal locker guaranteed', 'High-Speed Wi-Fi & Charging', 'AI chatbot & PDF RAG assistant', 'Free Library Book lending (2 books)', 'Prioritized Seat reservations'], actionText: 'Get 6 Months', highlight: true },
+        { name: '1 Year', price: '₹4,999', period: '1 year', original: '₹9,000', features: ['Full 12h access pass', 'Dedicated personal locker', 'Unlimited High-Speed Wi-Fi', 'Premium AI Study suite access', 'Free Library Book lending (4 books)', 'Prioritized VIP Seat allocation', 'Mock Interview sessions grading'], actionText: 'Go Annual', highlight: false }
+      ]
+    },
+    {
+      shift: '6 Hours Half Day',
+      hours: '6 am to 12 pm & 12 pm to 6 pm',
+      desc: 'Ideal half-day slots for college students and working professionals.',
+      prices: [
+        { name: '1 Month', price: '₹299', period: '1 month', original: '₹600', features: ['Single Shift Slot access', 'High-Speed Wi-Fi', 'Individual Charging Socket', 'Chilled RO Water', 'Daily Newspapers Access'], actionText: 'Join Monthly', highlight: false },
+        { name: '3 Months', price: '₹749', period: '3 months', original: '₹1,600', features: ['Dual Shift access or Single Lock slot', 'Personal locker allocation', 'High-Speed Wi-Fi & Charging', 'AI Study Assistant basic', 'Free Library Book lending (1 book)'], actionText: 'Book 3 Months', highlight: false },
+        { name: '6 Months', price: '₹1,499', period: '6 months', original: '₹3,000', features: ['Flexible Shift hours access', 'Personal locker guaranteed', 'High-Speed Wi-Fi & Charging', 'AI chatbot & PDF RAG assistant', 'Free Library Book lending (2 books)', 'Prioritized Seat reservations'], actionText: 'Get 6 Months', highlight: true },
+        { name: '1 Year', price: '₹2,999', period: '1 year', original: '₹5,500', features: ['Full 6h access pass', 'Dedicated personal locker', 'Unlimited High-Speed Wi-Fi', 'Premium AI Study suite access', 'Free Library Book lending (4 books)', 'Prioritized VIP Seat allocation', 'Mock Interview sessions grading'], actionText: 'Go Annual', highlight: false }
+      ]
+    },
+    {
+      shift: 'Night Shift',
+      hours: '6 P.M to 6 A.M',
+      desc: 'Peaceful night-time studies with special night security and internet speeds.',
+      prices: [
+        { name: '1 Month', price: '₹299', period: '1 month', original: '₹600', features: ['Single Shift Slot access', 'High-Speed Wi-Fi', 'Individual Charging Socket', 'Chilled RO Water', 'Daily Newspapers Access'], actionText: 'Join Monthly', highlight: false },
+        { name: '3 Months', price: '₹749', period: '3 months', original: '₹1,600', features: ['Dual Shift access or Single Lock slot', 'Personal locker allocation', 'High-Speed Wi-Fi & Charging', 'AI Study Assistant basic', 'Free Library Book lending (1 book)'], actionText: 'Book 3 Months', highlight: false },
+        { name: '6 Months', price: '₹1,499', period: '6 months', original: '₹3,000', features: ['Flexible Shift hours access', 'Personal locker guaranteed', 'High-Speed Wi-Fi & Charging', 'AI chatbot & PDF RAG assistant', 'Free Library Book lending (2 books)', 'Prioritized Seat reservations'], actionText: 'Get 6 Months', highlight: true },
+        { name: '1 Year', price: '₹2,999', period: '1 year', original: '₹5,500', features: ['Full 12h night access', 'Dedicated personal locker', 'Unlimited High-Speed Wi-Fi', 'Premium AI Study suite access', 'Free Library Book lending (4 books)', 'Prioritized VIP Seat allocation', 'Mock Interview sessions grading'], actionText: 'Go Annual', highlight: false }
+      ]
+    }
   ];
 
   const testimonials = [
@@ -386,55 +427,150 @@ const LandingPage = () => {
             <p className="text-slate-500 text-xs sm:text-sm">Select a subscription cycle to book your dedicated desk space. No extra admission fees or surprise taxes.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {pricing.map((plan, idx) => (
-              <div 
-                key={idx} 
-                className={`glass-panel rounded-3xl bg-white p-6 border flex flex-col justify-between relative shadow-md transition-all ${
-                  plan.highlight 
-                    ? 'border-2 border-[#D62828] shadow-xl md:-translate-y-2' 
-                    : 'border-slate-200/80'
+          {/* Shift Selector Tabs */}
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-4 md:max-w-4xl mx-auto p-1.5 bg-[#0B2E6B]/10 rounded-2xl sm:rounded-full">
+            {shiftPricing.map((item, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setActiveShiftTab(item.shift)}
+                className={`px-5 py-2.5 rounded-xl sm:rounded-full text-xs font-bold transition-all ${
+                  activeShiftTab === item.shift
+                    ? 'bg-[#0B2E6B] text-white shadow-md'
+                    : 'text-slate-600 hover:bg-slate-350/40 dark:text-slate-300 dark:hover:bg-slate-700/40'
                 }`}
               >
-                {plan.highlight && (
-                  <span className="absolute -top-3.5 left-1/2 transform -translate-x-1/2 bg-[#D62828] text-white text-[9px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                    Most Popular
-                  </span>
-                )}
-                
-                <div className="space-y-4 text-left">
-                  <div>
-                    <h3 className="text-xs sm:text-sm font-bold text-[#0B2E6B]">{plan.name}</h3>
-                    <div className="flex items-baseline mt-2">
-                      <span className="text-3xl font-extrabold text-[#0B2E6B] font-outfit">{plan.price}</span>
-                      <span className="text-slate-400 text-xs ml-1">/{plan.period}</span>
-                    </div>
-                  </div>
-
-                  <ul className="space-y-2 border-t border-slate-100 pt-4 text-[10px] sm:text-xs text-slate-500">
-                    {plan.features.map((feat, fidx) => (
-                      <li key={fidx} className="flex gap-2 items-center">
-                        <Check size={14} className="text-green-500 shrink-0" />
-                        <span>{feat}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="mt-6">
-                  <Link 
-                    to="/signup" 
-                    className={`w-full text-center block text-xs font-bold py-2.5 rounded-xl transition-all shadow-md ${
-                      plan.highlight
-                        ? 'bg-[#D62828] hover:bg-[#eb3333] text-white'
-                        : 'bg-[#0B2E6B] hover:bg-[#061e47] text-white'
-                    }`}
-                  >
-                    {plan.actionText}
-                  </Link>
-                </div>
-              </div>
+                {item.shift} ({item.hours})
+              </button>
             ))}
+          </div>
+
+          {/* Active Shift Description */}
+          {(() => {
+            const selectedShiftData = shiftPricing.find(s => s.shift === activeShiftTab);
+            return (
+              <>
+                {selectedShiftData && (
+                  <div className="text-center max-w-xl mx-auto -mt-4 animate-fade-in">
+                    <p className="text-xs text-slate-500 font-semibold italic">{selectedShiftData.desc}</p>
+                  </div>
+                )}
+
+                {/* Pricing Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                  {selectedShiftData && selectedShiftData.prices.map((plan, idx) => (
+                    <div 
+                      key={idx} 
+                      className={`glass-panel rounded-3xl bg-white p-6 border flex flex-col justify-between relative shadow-md transition-all hover:shadow-lg ${
+                        plan.highlight 
+                          ? 'border-2 border-[#D62828] shadow-xl md:-translate-y-2' 
+                          : 'border-slate-200/80'
+                      }`}
+                    >
+                      {plan.highlight && (
+                        <span className="absolute -top-3.5 left-1/2 transform -translate-x-1/2 bg-[#D62828] text-white text-[9px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                          Best Value
+                        </span>
+                      )}
+                      
+                      <div className="space-y-4 text-left">
+                        <div>
+                          <div className="flex justify-between items-center">
+                            <h3 className="text-xs sm:text-sm font-bold text-[#0B2E6B]">{plan.name}</h3>
+                            {plan.original && (
+                              <span className="text-[10px] text-slate-400 line-through font-semibold">{plan.original}</span>
+                            )}
+                          </div>
+                          <div className="flex items-baseline mt-2">
+                            <span className="text-3xl font-extrabold text-[#0B2E6B] font-outfit">{plan.price}</span>
+                            <span className="text-slate-400 text-xs ml-1">/{plan.period}</span>
+                          </div>
+                        </div>
+
+                        <ul className="space-y-2 border-t border-slate-100 pt-4 text-[10px] sm:text-xs text-slate-500">
+                          {plan.features.map((feat, fidx) => (
+                            <li key={fidx} className="flex gap-2 items-center">
+                              <Check size={14} className="text-green-500 shrink-0" />
+                              <span>{feat}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="mt-6">
+                        <Link 
+                          to="/signup" 
+                          className={`w-full text-center block text-xs font-bold py-2.5 rounded-xl transition-all shadow-md ${
+                            plan.highlight
+                              ? 'bg-[#D62828] hover:bg-[#eb3333] text-white'
+                              : 'bg-[#0B2E6B] hover:bg-[#061e47] text-white'
+                          }`}
+                        >
+                          {plan.actionText}
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            );
+          })()}
+
+          {/* Complete Matrix Table */}
+          <div className="bg-white rounded-3xl border border-slate-200/80 shadow-md p-6 max-w-4xl mx-auto space-y-4 mt-12 text-left">
+            <div>
+              <h3 className="text-sm font-extrabold text-[#0B2E6B] font-outfit">Complete Seating Fee Structure</h3>
+              <p className="text-slate-450 text-[10px] sm:text-xs">Compare all timing shifts and sub-plan rates at a glance.</p>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-150 bg-slate-50 text-[#0B2E6B] font-bold">
+                    <th className="py-3 px-4 rounded-tl-xl">Hours / Shift Name</th>
+                    <th className="py-3 px-4">Timing Details</th>
+                    <th className="py-3 px-4 text-[#D62828]">1 Month</th>
+                    <th className="py-3 px-4">3 Month</th>
+                    <th className="py-3 px-4">6 Month</th>
+                    <th className="py-3 px-4 rounded-tr-xl">1 Year</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-semibold text-slate-600">
+                  <tr className="hover:bg-slate-50/50">
+                    <td className="py-3 px-4 font-bold text-[#0B2E6B]">24 Hours</td>
+                    <td className="py-3 px-4 text-slate-500">6 A.M to 6 A.M</td>
+                    <td className="py-3 px-4 font-extrabold text-[#0B2E6B]">₹599</td>
+                    <td className="py-3 px-4">₹1,499</td>
+                    <td className="py-3 px-4">₹2,999</td>
+                    <td className="py-3 px-4 text-[#D62828] font-extrabold">₹5,999</td>
+                  </tr>
+                  <tr className="hover:bg-slate-50/50">
+                    <td className="py-3 px-4 font-bold text-[#0B2E6B]">12 Hours Full Day</td>
+                    <td className="py-3 px-4 text-slate-500">6 A.M to 6 P.M</td>
+                    <td className="py-3 px-4 font-extrabold text-[#0B2E6B]">₹499</td>
+                    <td className="py-3 px-4">₹1,249</td>
+                    <td className="py-3 px-4">₹2,499</td>
+                    <td className="py-3 px-4 text-[#D62828] font-extrabold">₹4,999</td>
+                  </tr>
+                  <tr className="hover:bg-slate-50/50">
+                    <td className="py-3 px-4 font-bold text-[#0B2E6B]">6 Hours Half Day</td>
+                    <td className="py-3 px-4 text-slate-500">6 AM to 12 PM & 12 PM to 6 PM</td>
+                    <td className="py-3 px-4 font-extrabold text-[#0B2E6B]">₹299</td>
+                    <td className="py-3 px-4">₹749</td>
+                    <td className="py-3 px-4">₹1,499</td>
+                    <td className="py-3 px-4 text-[#D62828] font-extrabold">₹2,999</td>
+                  </tr>
+                  <tr className="hover:bg-slate-50/50">
+                    <td className="py-3 px-4 font-bold text-[#0B2E6B]">Night Shift</td>
+                    <td className="py-3 px-4 text-slate-500">6 P.M to 6 A.M</td>
+                    <td className="py-3 px-4 font-extrabold text-[#0B2E6B]">₹299</td>
+                    <td className="py-3 px-4">₹749</td>
+                    <td className="py-3 px-4">₹1,499</td>
+                    <td className="py-3 px-4 text-[#D62828] font-extrabold">₹2,999</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>

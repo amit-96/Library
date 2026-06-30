@@ -380,9 +380,9 @@ exports.verifyOTP = async (req, res, next) => {
         month: currentMonth,
         year: currentYear,
         admissionFee: 500,
-        monthlyFee: 1200,
+        monthlyFee: 299,
         securityDeposit: 1000,
-        amount: 2700,
+        amount: 1799,
         status: 'Unpaid'
       });
     }
