@@ -84,8 +84,15 @@ const BookSearch = () => {
     };
 
     recognition.onerror = (event) => {
-      console.error(event.error);
+      console.error('Speech recognition error:', event.error);
       setIsListening(false);
+      if (event.error === 'language-not-supported') {
+        alert(`The selected voice language "${voiceLang}" is not supported by your browser's Web Speech API. Please try a different language or Chrome.`);
+      } else if (event.error === 'not-allowed') {
+        alert("Microphone permission was denied. Please check your browser microphone permission settings.");
+      } else {
+        alert(`Voice Search Error: ${event.error}`);
+      }
     };
 
     recognition.onend = () => {
@@ -126,7 +133,7 @@ const BookSearch = () => {
                     ? 'text-red-500 bg-red-500/10 dark:bg-red-950/30 animate-pulse' 
                     : 'text-slate-400 hover:text-slate-650 dark:hover:text-slate-255'
                 }`}
-                title="Voice Search (English, Hindi, Bengali)"
+                title="Voice Search (English, Hindi, Bengali, Odia)"
               >
                 {isListening ? <MicOff size={16} /> : <Mic size={16} />}
               </button>
@@ -143,6 +150,7 @@ const BookSearch = () => {
                 <option value="en-IN">English (India)</option>
                 <option value="hi-IN">Hindi (हिन्दी)</option>
                 <option value="bn-IN">Bengali (বাংলা)</option>
+                <option value="or-IN">Odia (ଓଡ଼ିଆ)</option>
               </select>
             </div>
 

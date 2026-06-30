@@ -609,6 +609,14 @@ exports.triggerFeeReminders = async (req, res, next) => {
         } catch (we) {
           console.error(`WhatsApp fail to ${student.phone}:`, we.message);
         }
+
+        // Dispatch SMS Alert
+        try {
+          const smsService = require('../utils/smsService');
+          await smsService.sendAlert(student.phone, messageText);
+        } catch (se) {
+          console.error(`SMS fail to ${student.phone}:`, se.message);
+        }
       }
 
       // 3. Dispatch Mock Email Alert

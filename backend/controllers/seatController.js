@@ -52,9 +52,11 @@ exports.reserveSeat = async (req, res, next) => {
 
     // WhatsApp Alert
     const { sendWhatsAppAlert } = require('../utils/whatsappService');
+    const { sendSMSAlert } = require('../utils/smsService');
     const phone = req.user.phone || '+919999999999';
     const formattedEnd = reservationEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     sendWhatsAppAlert(phone, `🪑 *Seat Reservation Confirmed*\n\n*Seat*: ${seat.seatNumber}\n*Expires at*: ${formattedEnd}\n\nEnsure to check-in before the reservation expires!`);
+    sendSMSAlert(phone, `🪑 Seat Reservation Confirmed. Seat: ${seat.seatNumber}. Expires at: ${formattedEnd}.`);
 
     res.status(200).json({
       success: true,
@@ -139,9 +141,11 @@ exports.reserveStudyRoom = async (req, res, next) => {
 
     // WhatsApp Alert
     const { sendWhatsAppAlert } = require('../utils/whatsappService');
+    const { sendSMSAlert } = require('../utils/smsService');
     const phone = req.user.phone || '+919999999999';
     const formattedEnd = room.endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     sendWhatsAppAlert(phone, `🚪 *Study Room Reservation Confirmed*\n\n*Room*: ${room.name}\n*Ends at*: ${formattedEnd}\n\nHave a productive study session!`);
+    sendSMSAlert(phone, `🚪 Study Room Reservation Confirmed. Room: ${room.name}. Ends at: ${formattedEnd}.`);
 
     res.status(200).json({
       success: true,

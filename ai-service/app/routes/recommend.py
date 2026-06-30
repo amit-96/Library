@@ -14,6 +14,7 @@ class RecommendationsQuery(BaseModel):
     user_history: List[Dict[str, Any]]
     all_books: List[Dict[str, Any]]
     top_k: Optional[int] = 4
+    collaborative_history: Optional[List[Dict[str, Any]]] = None
 
 @router.post("/search/semantic")
 async def semantic_search(body: SemanticSearchQuery):
@@ -26,7 +27,7 @@ async def semantic_search(body: SemanticSearchQuery):
 @router.post("/recommendations")
 async def recommendations(body: RecommendationsQuery):
     try:
-        results = rec_service.get_recommendations(body.user_history, body.all_books, body.top_k)
+        results = rec_service.get_recommendations(body.user_history, body.all_books, body.top_k, body.collaborative_history)
         return {"recommendations": results}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

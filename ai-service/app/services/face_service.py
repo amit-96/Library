@@ -2,14 +2,33 @@ import cv2
 import numpy as np
 import base64
 
-# Try to import face_recognition (requires dlib, which might fail compilation on Windows)
+# Try to import face_recognition (requires dlib)
 HAS_FACE_REC = False
 try:
     import face_recognition
     HAS_FACE_REC = True
     print("face_recognition (dlib-based) successfully imported.")
 except ImportError:
-    print("face_recognition (dlib-based) not available. Falling back to OpenCV YuNet/Haar Cascades + Color Histogram matcher.")
+    pass
+
+# Integrate lightweight facenet-pytorch default pipeline
+HAS_FACENET_REC = False
+try:
+    from facenet_pytorch import MTCNN, InceptionResnetV1
+    import torch
+    
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    # MTCNN defaults to returning normalized cropped tensor of face (160x160)
+    mtcnn = MTCNN(keep_all=False, device=device)
+    # Load FaceNet model pre-trained on VGGFace2
+    resnet = InceptionResnetV1(pretrained='vggface2').eval().to(device)
+    HAS_FACENET_REC = True
+    print(f"facenet-pytorch successfully initialized on device: {device}")
+except Exception as e:
+    print(f"Warning: facenet-pytorch could not be loaded: {str(e)}")
+
+if not HAS_FACE_REC and not HAS_FACENET_REC:
+    print("Warning: Neither dlib face_recognition nor facenet-pytorch is available. Falling back to OpenCV YuNet/Haar Cascades + Color Histogram matcher.")
 
 # Load Haar Cascades for face detection as fallback
 cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
@@ -27,32 +46,49 @@ def get_face_embedding(img):
     if img is None:
         return None
 
+    # 1. Primary path: dlib-based face_recognition
     if HAS_FACE_REC:
         try:
-            # Convert BGR (OpenCV) to RGB (face_recognition)
             rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             encodings = face_recognition.face_encodings(rgb_img)
             if len(encodings) > 0:
-                # Return the 128D list
                 return encodings[0].tolist()
         except Exception as e:
             print(f"Error extracting embedding via face_recognition: {e}")
 
-    # Fallback OpenCV method: Resize cropped face and create standardized mock embedding vector
+    # 2. Default standard path: facenet-pytorch InceptionResnetV1 (512D projected to 128D)
+    if HAS_FACENET_REC:
+        try:
+            rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            # mtcnn crops the face and returns a PyTorch tensor
+            face_tensor = mtcnn(rgb_img)
+            if face_tensor is not None:
+                face_tensor = face_tensor.unsqueeze(0).to(device)
+                with torch.no_grad():
+                    # Generate 512-dimensional embedding
+                    embedding_512 = resnet(face_tensor)[0].cpu().numpy()
+                
+                # Project 512D to 128D via average pooling
+                embedding_128 = embedding_512.reshape(-1, 4).mean(axis=1)
+                # L2 normalize the projected embedding
+                norm = np.linalg.norm(embedding_128)
+                if norm > 0:
+                    embedding_128 = embedding_128 / norm
+                return embedding_128.tolist()
+        except Exception as e:
+            print(f"Error extracting embedding via facenet-pytorch: {e}")
+
+    # 3. Fallback path: OpenCV Haar Cascades + Color Histogram
     try:
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
         if len(faces) > 0:
             x, y, w, h = faces[0]
             face_roi = img[y:y+h, x:x+w]
-            # Resize cropped face to standard size (e.g. 100x100)
             face_resized = cv2.resize(face_roi, (100, 100))
-            # Standardize pixel values and use them to construct a mock 128D embedding vector
-            # This embedding is a representation of the face's color/intensity profile
             hist = cv2.calcHist([face_resized], [0, 1, 2], None, [4, 4, 4], [0, 256, 0, 256, 0, 256])
             hist = cv2.normalize(hist, hist).flatten()
             
-            # Pad or slice hist to fit exactly 128 dimensions
             embedding = np.zeros(128)
             embedding[:min(128, len(hist))] = hist[:min(128, len(hist))]
             return embedding.tolist()
@@ -73,8 +109,8 @@ def match_face(uploaded_embedding, db_students):
     best_match = None
     min_distance = 999.0
 
-    # Distance Thresholds: 0.6 for face_recognition (L2 distance), 0.4 for histogram
-    threshold = 0.6 if HAS_FACE_REC else 0.4
+    # Distance Thresholds: 0.6 for dlib (L2 distance), 0.65 for FaceNet-128D, 0.4 for histogram
+    threshold = 0.6 if HAS_FACE_REC else (0.65 if HAS_FACENET_REC else 0.4)
 
     for student in db_students:
         student_embeds = student.get("faceEmbeddings")

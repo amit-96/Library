@@ -9,3 +9,10 @@ faiss-cpu
 openai
 requests
 python-dotenv
+pandas
+scikit-learn
+joblib
+pymongo
+facenet-pytorch
+torchvision
+

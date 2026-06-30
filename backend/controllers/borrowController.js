@@ -70,9 +70,11 @@ exports.issueBook = async (req, res, next) => {
 
     // Send WhatsApp Alert
     const { sendWhatsAppAlert } = require('../utils/whatsappService');
+    const { sendSMSAlert } = require('../utils/smsService');
     const phone = student.phone || '+919999999999';
     const formattedDue = dueDate.toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' });
     sendWhatsAppAlert(phone, `📚 *Book Issued Successfully*\n\n*Book*: ${book.title}\n*Due Date*: ${formattedDue}\n\nPlease return the book on time to avoid library fines!`);
+    sendSMSAlert(phone, `📚 Book Issued Successfully. Book: ${book.title}. Due Date: ${formattedDue}. Please return on time!`);
 
     res.status(201).json({
       success: true,
@@ -124,9 +126,11 @@ exports.returnBook = async (req, res, next) => {
 
     // Send WhatsApp Alert
     const { sendWhatsAppAlert } = require('../utils/whatsappService');
+    const { sendSMSAlert } = require('../utils/smsService');
     const phone = borrow.userId?.phone || '+919999999999';
     let fineText = fineAmount > 0 ? `\n*Overdue Fine*: ₹${fineAmount}` : '';
     sendWhatsAppAlert(phone, `✅ *Book Returned Successfully*\n\n*Book*: ${borrow.bookId.title}${fineText}\n\nThank you for returning it to the library!`);
+    sendSMSAlert(phone, `✅ Book Returned Successfully. Book: ${borrow.bookId.title}.${fineAmount > 0 ? ' Fine: Rs. ' + fineAmount : ''} Thank you!`);
 
     res.status(200).json({
       success: true,

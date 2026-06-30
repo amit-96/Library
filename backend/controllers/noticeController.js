@@ -60,9 +60,11 @@ exports.createNotice = async (req, res, next) => {
 
       // 3. Send WhatsApp alerts
       const { sendWhatsAppAlert } = require('../utils/whatsappService');
+      const { sendSMSAlert } = require('../utils/smsService');
       students.forEach(student => {
         const phone = student.phone || '+919999999999'; // default mock number
         sendWhatsAppAlert(phone, `🔔 *New Notice Alert*\n\n*Title*: ${title}\n\n${content.length > 150 ? content.substring(0, 150) + '...' : content}`);
+        sendSMSAlert(phone, `🔔 New Notice Alert. Title: ${title}. Check your dashboard for details!`);
       });
     }
 
