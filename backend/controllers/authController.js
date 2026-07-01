@@ -107,12 +107,16 @@ exports.register = async (req, res, next) => {
       }
     }
 
+    const hasRealTransport = isEmail 
+      ? (process.env.EMAIL_USER && process.env.EMAIL_USER !== 'your_email@gmail.com')
+      : (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_SMS_FROM);
+
     res.status(201).json({
       success: true,
       message: isEmail 
         ? 'User registered. Please check email for verification code.'
         : 'User registered. Please check your phone for verification OTP.',
-      demoCode: codeSent && process.env.EMAIL_USER && process.env.EMAIL_USER !== 'your_email@gmail.com' ? undefined : demoCode
+      demoCode: codeSent && hasRealTransport ? undefined : demoCode
     });
   } catch (error) {
     next(error);
@@ -369,7 +373,7 @@ exports.sendOTP = async (req, res, next) => {
       await user.save();
     }
 
-    // Send OTP code via email or WhatsApp
+    // Send OTP code via email, Twilio SMS, and WhatsApp
     let otpSent = false;
     let demoCode = verificationCode;
     if (isEmail) {
@@ -380,19 +384,30 @@ exports.sendOTP = async (req, res, next) => {
         console.error('OTP email failed to send:', err.message);
       }
     } else {
-      // Send WhatsApp
+      // Send via Twilio SMS and WhatsApp
       try {
-        await whatsappService.sendAlert(user.phone, `Your Nalanda Digital Library verification OTP is: ${verificationCode}. It expires in 15 minutes.`);
+        const { sendSMSAlert } = require('../utils/smsService');
+        await sendSMSAlert(user.phone, `Your Nalanda Digital Library verification OTP is: ${verificationCode}. It expires in 15 minutes.`);
+        
+        try {
+          await whatsappService.sendAlert(user.phone, `Your Nalanda Digital Library verification OTP is: ${verificationCode}. It expires in 15 minutes.`);
+        } catch (we) {
+          console.error('OTP WhatsApp dispatch failed:', we.message);
+        }
         otpSent = true;
       } catch (err) {
-        console.error('OTP WhatsApp failed to send:', err.message);
+        console.error('OTP SMS/WhatsApp failed to send:', err.message);
       }
     }
+
+    const hasRealTransport = isEmail 
+      ? (process.env.EMAIL_USER && process.env.EMAIL_USER !== 'your_email@gmail.com')
+      : (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_SMS_FROM);
 
     res.status(200).json({
       success: true,
       message: `OTP sent successfully to ${identifier}`,
-      demoCode: otpSent && process.env.EMAIL_USER && process.env.EMAIL_USER !== 'your_email@gmail.com' ? undefined : demoCode
+      demoCode: otpSent && hasRealTransport ? undefined : demoCode
     });
   } catch (error) {
     next(error);
