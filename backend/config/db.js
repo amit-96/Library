@@ -1,22 +1,19 @@
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
+  const mongoUri = process.env.MONGO_URI;
+  if (!mongoUri) {
+    console.error('CRITICAL ERROR: MONGO_URI environment variable is not defined in your .env file.');
+    process.exit(1);
+  }
+
   try {
-    const mongoUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/libra-ai';
-    const conn = await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 2500 });
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    const conn = await mongoose.connect(mongoUri);
+    console.log(`MongoDB Connected successfully to Atlas Host: ${conn.connection.host}`);
     mongoose.set('bufferCommands', true);
   } catch (error) {
-    console.warn(`Primary MongoDB connection failed: ${error.message}. Attempting local fallback...`);
-    try {
-      const connLocal = await mongoose.connect('mongodb://127.0.0.1:27017/libra-ai', { serverSelectionTimeoutMS: 2500 });
-      console.log(`Local MongoDB Connected: ${connLocal.connection.host}`);
-      mongoose.set('bufferCommands', true);
-    } catch (localError) {
-      console.error(`MongoDB Connection Warning: Both primary and local connections failed. Running in offline database warning mode.`);
-      // Disable Mongoose command buffering so queries fail immediately rather than hanging
-      mongoose.set('bufferCommands', false);
-    }
+    console.error(`MongoDB Connection Failed: ${error.message}`);
+    process.exit(1);
   }
 };
 

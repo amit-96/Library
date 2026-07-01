@@ -17,9 +17,11 @@ dotenv.config();
 
 const seedData = async () => {
   try {
-    // Connect to DB
-    await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/libra-ai');
-    console.log('MongoDB connected for seeding...');
+    if (!process.env.MONGO_URI) {
+      throw new Error('MONGO_URI is not defined in your environment variables.');
+    }
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log('MongoDB connected successfully to Atlas for seeding...');
 
     // Clear existing collections
     await User.deleteMany();

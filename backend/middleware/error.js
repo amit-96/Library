@@ -23,11 +23,7 @@ const errorHandler = (err, req, res, next) => {
     return res.status(400).json({ success: false, message });
   }
 
-  // Mongoose buffering/offline connection timeout error
-  if (err.message && (err.message.includes('buffering timed out') || err.message.includes('topology') || err.message.includes('bufferCommands'))) {
-    const message = 'Database is currently offline. Please ensure MongoDB is running locally on port 27017.';
-    return res.status(503).json({ success: false, message });
-  }
+
 
   res.status(error.statusCode || 500).json({
     success: false,
