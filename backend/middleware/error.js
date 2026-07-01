@@ -23,7 +23,11 @@ const errorHandler = (err, req, res, next) => {
     return res.status(400).json({ success: false, message });
   }
 
-
+  // Mongoose buffering or offline connection error translation
+  if (err.message && (err.message.includes('bufferCommands') || err.message.includes('buffering timed out') || err.message.includes('topology'))) {
+    const message = 'Database connection is currently inactive. Please verify your internet connection and MongoDB Atlas URI configurations in your .env file.';
+    return res.status(503).json({ success: false, message });
+  }
 
   res.status(error.statusCode || 500).json({
     success: false,
