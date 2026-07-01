@@ -115,8 +115,7 @@ exports.register = async (req, res, next) => {
       success: true,
       message: isEmail 
         ? 'User registered. Please check email for verification code.'
-        : 'User registered. Please check your phone for verification OTP.',
-      demoCode: codeSent && hasRealTransport ? undefined : demoCode
+        : 'User registered. Please check your phone for verification OTP.'
     });
   } catch (error) {
     next(error);
@@ -406,8 +405,7 @@ exports.sendOTP = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: `OTP sent successfully to ${identifier}`,
-      demoCode: otpSent && hasRealTransport ? undefined : demoCode
+      message: `OTP sent successfully to ${identifier}`
     });
   } catch (error) {
     next(error);
